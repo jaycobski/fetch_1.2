@@ -6,6 +6,7 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 import { PerplexityClient } from '@/lib/perplexity';
 import { useAuth } from '@/context/auth';
+import { errorHandler } from '@/utils/error-handling';
 
 interface SummaryToggleProps {
   postId: string;
@@ -133,18 +134,7 @@ export function SummaryToggle({ postId, onSummaryGenerated }: SummaryToggleProps
       toast.success('Summary generated successfully');
       setIsEnabled(true);
     } catch (error) {
-      console.error('Error generating summary:', error);
-      if (existingSummaryId) {
-        await supabase
-          .from('summaries')
-          .update({
-            status: 'failed',
-            error_message: error.message || 'Unknown error'
-          })
-          .eq('id', existingSummaryId);
-      }
-
-      toast.error(error.message || 'Failed to generate summary');
+      errorHandler.handle(error);
       setIsEnabled(checked);
     } finally {
       setLoading(false);
